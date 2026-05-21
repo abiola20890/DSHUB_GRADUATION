@@ -1,0 +1,34 @@
+# Dependencies — installed fresh inside the container
+node_modules/
+
+# Environment — never bake secrets into an image
+.env
+.env.*
+
+# Uploaded files — Cloudinary handles production storage
+uploads/*
+!uploads/.gitkeep
+
+# Logs
+logs/
+*.log
+
+# Git
+.git/
+.gitignore
+
+# Docker files themselves
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# README — not needed at runtime
+README.md

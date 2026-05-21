@@ -1,0 +1,84 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# DSHub Graduation Backend — Docker Compose
+#
+# Usage:
+#   docker compose up --build          → build and start all services
+#   docker compose up -d               → start in background
+#   docker compose down                → stop and remove containers
+#   docker compose down -v             → stop, remove containers AND volumes
+#   docker compose logs -f api         → follow API logs
+#   docker compose exec api sh         → shell into the API container
+#
+# Services:
+#   api   → Express application (port 9000)
+#   mongo → MongoDB instance (port 27017, dev only — use Atlas in production)
+#
+# Design decisions:
+# - MongoDB service is included for local development only.
+#   In production on Render, use MongoDB Atlas (set MONGODB_URI in .env).
+# - Environment variables are loaded from .env via env_file — never hardcoded.
+# - Named volume (mongo_data) persists DB data across container restarts.
+# - api service depends_on mongo with a health check so the API only starts
+#   after MongoDB is confirmed ready to accept connections.
+# - restart: unless-stopped keeps the API running after crashes in dev.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── API ─────────────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: dshub-api
+    ports:
+      - '9000:9000'
+    env_file:
+      - .env
+    environment:
+      # Override MONGODB_URI to point to the local mongo service
+      # Remove this override when using Atlas in production
+      MONGODB_URI: mongodb://mongo:27017/dshub-graduation
+      NODE_ENV: development
+    volumes:
+      # Mount uploads directory so files persist across container restarts in dev
+      # Remove in production — Cloudinary handles file storage
+      - ./uploads:/app/uploads
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - dshub-network
+
+  # ── MongoDB (development only) ───────────────────────────────────────────────
+  mongo:
+    image: mongo:7.0
+    container_name: dshub-mongo
+    ports:
+      # Expose to host so you can connect with MongoDB Compass on localhost:27017
+      - '27017:27017'
+    volumes:
+      # Named volume — DB data persists across docker compose down/up
+      - mongo_data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', 'db.adminCommand("ping")']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - dshub-network
+
+# ── Volumes ───────────────────────────────────────────────────────────────────
+volumes:
+  mongo_data:
+    name: dshub-mongo-data
+
+# ── Networks ──────────────────────────────────────────────────────────────────
+networks:
+  dshub-network:
+    name: dshub-network
+    driver: bridge
