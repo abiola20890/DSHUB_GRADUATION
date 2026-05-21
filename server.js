@@ -24,9 +24,7 @@ const startServer = async () => {
       console.log(`  Base URL    : http://localhost:${PORT}/api/v1`);
       console.log(`  Health      : http://localhost:${PORT}/health`);
       console.log('────────────────────────────────────────\n');
-      console.log("CLOUD NAME:", process.env.CLOUDINARY_CLOUD_NAME);
-      console.log("API KEY:", process.env.CLOUDINARY_API_KEY);
-      console.log("SECRET LENGTH:", process.env.CLOUDINARY_API_SECRET?.length);
+
     });
 
     // ── Graceful Shutdown ──────────────────────────────────────────────────

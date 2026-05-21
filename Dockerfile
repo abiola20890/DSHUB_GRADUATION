@@ -48,6 +48,8 @@ COPY package*.json ./
 # Install production dependencies only — excludes nodemon
 RUN npm ci --omit=dev && npm cache clean --force
 
+RUN mkdir -p /app/logs && chown -R node:node /app/logs
+
 # Copy built source from builder stage
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/app.js ./app.js

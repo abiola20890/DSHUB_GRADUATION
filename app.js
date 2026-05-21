@@ -50,41 +50,36 @@ app.use(mongoSanitize()); // strips $ and . from req.body, query, params
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-const logsDir = path.join(__dirname, 'logs');
+if (process.env.NODE_ENV === 'production') {
+  // Docker captures stdout/stderr automatically
+  app.use(morgan('combined'));
+} else {
+  // Local development: log to files + terminal
+  const logsDir = path.join(process.cwd(), 'logs');
 
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir);
-}
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true });
+  }
 
-// Access log stream (all requests)
-const accessLogStream = fs.createWriteStream(
-  path.join(logsDir, 'access.log'),
-  { flags: 'a' }
-);
+  const accessLogStream = fs.createWriteStream(
+    path.join(logsDir, 'access.log'),
+    { flags: 'a' }
+  );
 
-// Error log stream (4xx and 5xx only)
-const errorLogStream = fs.createWriteStream(
-  path.join(logsDir, 'error.log'),
-  { flags: 'a' }
-);
+  const errorLogStream = fs.createWriteStream(
+    path.join(logsDir, 'error.log'),
+    { flags: 'a' }
+  );
 
-// Log ALL requests to access.log
-app.use(
-  morgan('combined', {
-    stream: accessLogStream,
-  })
-);
+  app.use(morgan('combined', { stream: accessLogStream }));
 
-// Log ONLY errors to error.log
-app.use(
-  morgan('combined', {
-    stream: errorLogStream,
-    skip: (_req, res) => res.statusCode < 400,
-  })
-);
+  app.use(
+    morgan('combined', {
+      stream: errorLogStream,
+      skip: (_req, res) => res.statusCode < 400,
+    })
+  );
 
-// Optional: log to terminal in development
-if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
 
