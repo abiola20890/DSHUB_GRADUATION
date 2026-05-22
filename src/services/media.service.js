@@ -57,7 +57,7 @@ export const uploadMedia = async ({ file, body, userId }) => {
 
     const { title, description, category, altText, isPublic, isFeatured } = body;
 
-    const { url, publicId } = await uploadToCloudinary(file);
+    const { url, publicId, width, height, duration } = await uploadToCloudinary(file);
 
     const media = await Media.create({
       title,
@@ -68,6 +68,9 @@ export const uploadMedia = async ({ file, body, userId }) => {
       fileSize: file.size,
       type: getMediaTypeFromMime(file.mimetype),
       category,
+      width,
+      height,
+      duration,
       altText: altText || '',
       isPublic: isPublic !== undefined ? isPublic === 'true' : true,
       isFeatured: isFeatured === 'true',

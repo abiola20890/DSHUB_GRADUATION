@@ -20,6 +20,7 @@ router.get('/:id', optionalAuth, getMediaById);
 router.post(
   '/',
   protect,
+  restrictTo('admin'),
   upload.single('file'),
   uploadMedia
 );

@@ -27,7 +27,6 @@ export const uploadToCloudinary = (file) => {
       {
         folder,
         resource_type: resourceType,
-        upload_preset: "dshub_upload"
       },
       (error, result) => {
         if (error) return reject(error);
@@ -35,13 +34,14 @@ export const uploadToCloudinary = (file) => {
         resolve({
           url: result.secure_url,
           publicId: result.public_id,
+          width: result.width,
+          height: result.height,
+          duration: result.duration || null,
         });
       }
     );
   
     uploadStream.end(file.buffer);
-    console.log("FILE:", file);
-    console.log("BUFFER EXISTS:", !!file?.buffer);
   });
 };
 
