@@ -28,6 +28,10 @@ const API_PREFIX = '/api/v1';
 app.use(helmet({ crossOriginResourcePolicy: false }));
 
 const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://localhost:4200',
+  'https://dshub-platform-sigma.vercel.app',
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
@@ -40,7 +44,11 @@ app.use(cors({
   credentials:    true,
   methods:        ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
 }));
+
+app.options('*', cors());
 
 app.use(mongoSanitize()); // strips $ and . from req.body, query, params
 

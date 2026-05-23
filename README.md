@@ -97,12 +97,17 @@ dshub-graduation-backend/
 ├── Dockerfile
 ├── docker-compose.yml
 ├── README.md
-├── uploads/                        # Local file uploads (dev only — ephemeral on Render)
+├── logs/                           # HTTP request logs (gitignored — only .gitkeep committed)
+│   ├── .gitkeep                    # Keeps folder tracked by Git so app can write logs on clone
+│   ├── access.log                  # All requests (generated at runtime, not committed)
+│   └── error.log                   # 4xx/5xx errors only (generated at runtime, not committed)
+├── uploads/                        # Local file uploads (dev only — Cloudinary used in production)
 └── src/
     ├── config/
     │   ├── db.js                   # MongoDB connection with retry logic
     │   ├── seed.js                 # Seeds admin, mentor accounts + milestones
-    │   ├── multer.js               # Multer storage, MIME filter, file size limit
+    │   ├── cloudinary.js           # Cloudinary SDK configuration
+    │   ├── multer.js               # Multer memoryStorage + MIME filter
     │   ├── rateLimiter.js          # Global, auth, and strict rate limiters
     │   └── swagger.js              # Swagger/OpenAPI 3.0 setup
     ├── models/
@@ -171,8 +176,11 @@ npm install
 cp .env.example .env
 # Edit .env with your values
 
-# 4. Create the uploads directory
-mkdir -p uploads && touch uploads/.gitkeep
+# 4. Create required directories
+# On Mac/Linux:
+mkdir -p uploads logs && touch uploads/.gitkeep logs/.gitkeep
+# On Windows (PowerShell):
+New-Item -ItemType Directory -Force uploads, logs; New-Item uploads/.gitkeep, logs/.gitkeep -type file
 
 # 5. Seed admin account and milestones
 npm run seed
@@ -217,6 +225,10 @@ cp .env.example .env
 | `ANALYTICS_STALE_MINUTES` | No | `60` | Minutes before snapshot is stale |
 | `ANALYTICS_CRON_SCHEDULE` | No | `0 * * * *` | Cron schedule for auto-regeneration |
 | `TZ` | No | `Africa/Lagos` | Timezone for cron job scheduler |
+| `FRONTEND_URL` | Yes | — | Frontend origin for CORS (e.g. https://dshub-platform-sigma.vercel.app) |
+| `CLOUDINARY_CLOUD_NAME` | Yes | — | Cloudinary cloud name from dashboard |
+| `CLOUDINARY_API_KEY` | Yes | — | Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | Yes | — | Cloudinary API secret |
 
 > **Generate secure JWT secrets:**
 > ```bash
